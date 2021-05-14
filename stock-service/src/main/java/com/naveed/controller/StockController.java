@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,10 +31,12 @@ import com.naveed.repository.StockRepository;
 import com.naveed.service.MapValidationErrorService;
 
 import feign.FeignException;
+import io.swagger.annotations.ApiOperation;
 
 
 @RestController
 @RequestMapping("/stock")
+@CrossOrigin
 public class StockController {
 	
 	@Autowired
@@ -49,6 +52,8 @@ public class StockController {
 //	CompanyRepository companyRepo;
 	
 	@PostMapping("/add/{companyCode}")
+	@ApiOperation(value = "Adds Stock to a Company", notes = "Add Stock to a company Code and this api will persist that to the database" , 
+	response = Stock.class )
 	public ResponseEntity<?> addStock(@Valid @RequestBody Stock stock, @PathVariable String companyCode, BindingResult result){
 		
 		ResponseEntity<?> errorMap = mapValidationErrorService.MapValidationService(result);
