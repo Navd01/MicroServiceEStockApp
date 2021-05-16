@@ -1,5 +1,7 @@
 package com.naveed.security;
 
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +11,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+
+import lombok.var;
 
 @Configuration
 @EnableWebSecurity
@@ -27,7 +32,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	
 	 @Override
 	    protected void configure(HttpSecurity http) throws Exception {
-		 http.cors().and().csrf().disable()
+		 http.cors().configurationSource(request -> {
+		      var cors = new CorsConfiguration();
+		      cors.setAllowedOrigins(Arrays.asList("*"));
+		      cors.setAllowedMethods(Arrays.asList("GET","POST", "PUT", "DELETE", "OPTIONS"));
+		      cors.setAllowedHeaders(Arrays.asList("*"));
+		      return cors;
+		    }).and().csrf().disable()
 		 .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
          .sessionManagement()
          .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
