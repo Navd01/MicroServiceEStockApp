@@ -6,6 +6,8 @@ import java.util.Optional;
 
 import javax.validation.Valid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +15,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,6 +32,8 @@ import com.naveed.intercomm.StockClient;
 @CrossOrigin
 public class CompanyController {
 	
+	Logger logger = LoggerFactory.getLogger(CompanyController.class);
+	
 	@Autowired
 	CompanyRepository companyRepo;
 	
@@ -42,12 +45,17 @@ public class CompanyController {
 
 	@PostMapping("/register")
 	public ResponseEntity<?> newRegistration(@Valid @RequestBody Company registration , BindingResult result) {
+		logger.info("The request body : {}" , registration );
 		ResponseEntity<?> errorMap = mapValidationErrorService.MapValidationService(result);
-        if(errorMap!=null) return errorMap;
+        if(errorMap!=null) {
+        	logger.error("Error in ValidationService : {}", errorMap);
+        	return errorMap;
+        }
         Company company = new Company();
 		try {
 		registration.setCompanyCode(registration.getCompanyCode().toUpperCase());
 		 company = companyRepo.save(registration);
+		 logger.info("The company with id :"  + company.getCompanyCode() + " is registered");
 		
 		}catch(Exception e) {
 			Long id = registration.getId();
@@ -56,13 +64,16 @@ public class CompanyController {
 				Company dbCompany = findByIdCompany.get();
 				if(dbCompany != null) {
 					dbCompany.setLatestStockPrice(registration.getLatestStockPrice());
+					logger.info("The latest stock price for the company is : " + registration.getLatestStockPrice() );
 					companyRepo.save(dbCompany);
 					
 				}else {
+					logger.error("Project Id - " + registration.getCompanyCode() + " Already Exists");
 					throw new CompanyCodeException("Project Id Already Exists");
 				}
 				
 			}else {
+				logger.error("Project Id - " + registration.getCompanyCode() + " Already Exists");
 			throw new CompanyCodeException("Project Id Already Exists");
 			}
 		}
@@ -76,6 +87,7 @@ public class CompanyController {
 		Company company = companyRepo.findByCompanyCode(companyCode);
 		
 		if(company == null) {
+			logger.error("Company with code " + companyCode + " doesnt exist");
 			throw new CompanyCodeException("Company with code " + companyCode + " doesnt exist" );
 		}
 		
@@ -96,6 +108,7 @@ public class CompanyController {
 		Company company = companyRepo.findByCompanyCode(companyCode);
 		
 		if(company == null) {
+			logger.error("Company with code " + companyCode + " doesnt exist");
 			throw new CompanyCodeException("Company with code " + companyCode + " doesnt exist" );
 		}
 		stockClient.deleteStock(companyCode);
