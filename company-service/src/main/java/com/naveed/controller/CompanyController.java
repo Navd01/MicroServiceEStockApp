@@ -29,7 +29,7 @@ import com.naveed.intercomm.StockClient;
 
 @RestController
 @RequestMapping("/company")
-@CrossOrigin
+
 public class CompanyController {
 	
 	Logger logger = LoggerFactory.getLogger(CompanyController.class);
@@ -81,8 +81,25 @@ public class CompanyController {
 		
 	}
 	
+	
 	@GetMapping("/info/{companyCode}")
 	public ResponseEntity<?> getCompanyDetails(@PathVariable String companyCode){
+		
+		Company company = companyRepo.findByCompanyCode(companyCode);
+		
+		if(company == null) {
+			logger.error("Company with code " + companyCode + " doesnt exist");
+			throw new CompanyCodeException("Company with code " + companyCode + " doesnt exist" );
+		}
+		
+		return new ResponseEntity<Company>(company , HttpStatus.OK);
+	}
+	
+	//Internal Method that exactly functions as the getCompanyDetails method. 
+	//but is used with feign so no authentication is required for accessing below method.
+	// this end point is not exposed to the outside world.
+	@GetMapping("/getCompany/{companyCode}")
+	public ResponseEntity<?> getCompanyInfo(@PathVariable String companyCode){
 		
 		Company company = companyRepo.findByCompanyCode(companyCode);
 		
